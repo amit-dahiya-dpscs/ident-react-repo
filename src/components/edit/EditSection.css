@@ -1,0 +1,408 @@
+/* ======================================================= */
+/* --- WRAPPER AND SHARED STYLES --- */
+/* ======================================================= */
+
+/* CONSOLIDATED: Base styles for ANY section card are now here */
+.edit-section-wrapper {
+    background-color: rgba(30, 48, 64, 0.75);
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* When another section is being edited, fade this one out slightly */
+.edit-section-wrapper.disabled {
+    opacity: 0.5;
+    pointer-events: none; /* Prevent clicking on disabled sections */
+}
+/* Don't apply the disabled style to the section that is actually being edited */
+.edit-section-wrapper.disabled.editing {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Add a prominent blue border when a section is in edit mode */
+.edit-section-wrapper.editing {
+    border-color: var(--link-color);
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* NEW RULE: Fixes the "double header" issue for nested sections */
+/* Targets headers of sections that are inside another section wrapper */
+.edit-section-wrapper .section-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 15px;
+}
+.edit-section-wrapper .section-header .section-title {
+    font-size: 1.0rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #95a5a6;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+
+.section-title {
+    margin: 0;
+    font-size: 1.25rem;       
+    font-weight: 400;         
+    text-transform: none;     
+    color: #FFFFFF;        
+    letter-spacing: 0.5px;
+}
+
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid #7f8c8d;
+    color: #bdc3c7;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-button:hover:not(:disabled) {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.edit-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.section-content {
+    padding-bottom: 20px;
+}
+
+.section-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Generic Save/Cancel buttons used in EditSection wrapper */
+.action-button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.save-button {
+    background: #0084c7;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.save-button:hover {
+    background: #009be6;
+    transform: translateY(-1px);
+}
+
+.save-button:disabled {
+    background: #5a6878;    /* A muted, greyish-blue color */
+    box-shadow: none;           /* Remove the shadow to make it look flat */
+    cursor: not-allowed;        /* Show the 'not-allowed' cursor on hover */
+    transform: none;            /* Prevent any hover transformations */
+}
+
+.cancel-button {
+    background: transparent;
+    border: 1px solid #7f8c8d;
+    color: #bdc3c7;
+}
+.cancel-button:hover {
+    background: #7f8c8d;
+    color: white;
+}
+
+/* ======================================================= */
+/* --- EDITABLE FORM ELEMENT STYLES --- */
+/* ======================================================= */
+
+/* Base style for all editable inputs and selects */
+.detail-value-edit,
+.comment-textarea-edit {
+    width: 100%;
+    background-color: #f0f2f5;
+    border: 1px solid #c8d0d8;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    color: #333;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-sizing: border-box; /* Important for consistent sizing */
+}
+.detail-value-edit:focus,
+.comment-textarea-edit:focus {
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+.comment-textarea-edit {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit; /* Make it look like other inputs */
+}
+
+
+/* ======================================================= */
+/* --- LIST AND TABLE EDIT STYLES --- */
+/* ======================================================= */
+
+/* Container for lists/tables of editable items */
+.editable-table-container,
+.editable-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* This will now control the space between rows */
+}
+.no-records-text {
+    font-style: italic;
+    color: #bdc3c7;
+    padding: 10px 0;
+}
+
+/* A single row in an editable list (like Aliases) */
+.editable-list-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 22px;
+}
+.editable-list-item .detail-value-edit {
+    flex-grow: 1; /* Make the input take up most of the space */
+}
+
+/* --- ADD THIS NEW RULE --- */
+/* Allows the new wrapper div to expand and fill the space */
+.editable-list-item .detail-item.full-width {
+    flex-grow: 1;
+}
+
+.editable-list-item:has(.detail-item):has(.delete-action-cell) {
+    /* This tells the row to align all its children (Prefix, Number, Button)
+      to their bottom edges, which will align the inputs and the button.
+    */
+    align-items: flex-end;
+}
+
+/* A single row in an editable table (like Append-ID, Reference) */
+.editable-record-row {
+    display: grid;
+    gap: 15px 25px;
+    align-items: end; 
+}
+
+.header-row {
+    border-bottom: 2px solid var(--border-color); /* A solid, more prominent line */
+    padding-bottom: 10px; /* Tighter padding to the line */
+}
+.header-row .detail-label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+/* Grid definitions for each specific form */
+.appended-id-grid {
+    grid-template-columns: 2fr 1.2fr 2fr 1.5fr 1.5fr 40px;
+}
+.appended-id-grid:not(:has(.delete-action-cell)) {
+    grid-template-columns: 2fr 1.2fr 2fr 1.5fr 1.5fr;
+}
+.reference-grid {
+    grid-template-columns: 1fr 1fr 1.5fr 3fr 40px;
+}
+.reference-grid:not(:has(.delete-action-cell)) {
+    grid-template-columns: 1fr 1fr 1.5fr 3fr;
+}
+
+/* Cell for the delete button */
+.delete-action-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    /* ADDED: A small bottom padding to visually align the icon with the input boxes' bottom border */
+}
+.delete-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #c82333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.2s;
+}
+.delete-button:hover {
+    background-color: #a81c2a;
+}
+
+/* Button to add a new row */
+.add-button {
+    margin-top: 15px;
+    align-self: flex-start;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.add-button:hover {
+    background-color: #218838;
+}
+
+/* Apply styles to the entire row when it's marked */
+.editable-list-item.marked-for-deletion,
+.editable-record-row.marked-for-deletion {
+    opacity: 0.6;
+    background-color: rgba(220, 53, 69, 0.1); /* Subtle red background */
+}
+
+/* Style the specific input field within the marked row */
+.marked-for-deletion .detail-value-edit {
+    text-decoration: line-through;
+    text-decoration-color: #dc3545;
+    text-decoration-thickness: 2px;
+}
+
+/* Style for the delete button when it's in the "undo" state */
+.delete-button.undo {
+    background-color: #28a745; /* Green for "Undo" */
+}
+.delete-button.undo:hover {
+    background-color: #218838;
+}
+
+/* --- STYLES FOR INLINE CONFIRMATION BANNER --- */
+
+.inline-confirmation-banner {
+    background-color: rgba(44, 62, 80, 0.8);
+    border: 1px solid var(--link-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
+}
+
+.inline-confirmation-banner h4 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.inline-confirmation-banner .confirmation-details p {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #bdc3c7;
+}
+.inline-confirmation-banner .confirmation-details p strong {
+    color: white;
+}
+
+.inline-confirmation-banner .form-group {
+    margin-top: 15px;
+}
+.inline-confirmation-banner .form-group label {
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #bdc3c7;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.inline-confirmation-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Helper class for smaller buttons inside the banner */
+.action-button.small {
+    padding: 6px 16px;
+    font-size: 0.9rem;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 1. Override the default .editable-list-item for misc-num */
+.editable-list-item.misc-num-list-item {
+    display: flex;
+    flex-direction: column; /* Stack the field-row and error-row vertically */
+    align-items: flex-start;
+    gap: 0; /* Remove the gap, we'll control it manually */
+    
+    /* Override the padding that was for the old inline errors */
+    padding-bottom: 0; 
+}
+
+/* 2. Style the new wrapper for the fields */
+.misc-num-list-item .editable-list-item-fields {
+    display: flex;
+    align-items: flex-end; /* Aligns Prefix, Number, Delete horizontally */
+    gap: 10px;           /* Space *between* the fields */
+    width: 100%;
+}
+
+/* 3. Style the new error container */
+.misc-num-list-item .row-error-container {
+    /* This padding aligns the error under the "Number" field.
+       (100px for Prefix field + 10px gap = 110px) */
+    padding-left: 110px;
+    width: 100%;
+}
+
+.reference-grid .reference-error-container {
+    /* This makes the container span all 5 columns of the grid,
+       pushing it to a new line below the fields. */
+    grid-column: 1 / -1; 
+}
+
+.editable-record-row.pending-deletion-highlight {
+    border-radius: 6px;
+    border: 1px solid var(--link-color); /* Bright blue border */
+    background-color: rgba(52, 152, 219, 0.1); /* Faint blue background */
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.2); /* Subtle glow */
+}
