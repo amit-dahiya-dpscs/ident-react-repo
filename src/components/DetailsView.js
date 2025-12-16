@@ -199,8 +199,8 @@ const DetailsView = ({ data, backToSearch, onClose }) => {
                         <div className="detail-item-name">
                             <DetailItem label="NAME" value={`${primaryName.lastName}, ${primaryName.firstName} ${primaryName.middleName || ''}`} />
                         </div>
-                        <DetailItem label="SID" value={details.sid} />
                         <DetailItem label="FBI / UCN" value={details.fbiNumber} />
+                        <DetailItem label="SID" value={details.sid} />
                         <div className="detail-item-record-type">
                             <DetailItem label="RECORD TYPE" value={details.recordType} />
                         </div>

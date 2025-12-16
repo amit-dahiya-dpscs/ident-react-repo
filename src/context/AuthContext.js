@@ -1,46 +1,40 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { apiClient } from '../services/api';
-import { jwtDecode } from 'jwt-decode'; // Ensure this matches your package import
+import { apiClient, logoutUserApi, resetLogoutFlag } from '../services/api';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [authToken, setAuthToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  const logout = useCallback(() => {
-    setAuthToken(null);
+  const logout = useCallback(async () => {
+    try {
+        // Tell backend to clear the HttpOnly cookie
+        await logoutUserApi(); 
+    } catch (e) {
+        console.warn("Logout API call failed", e);
+    }
+
     setUser(null);
-    sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
+    // Clear the Authorization header if it was ever set (cleanup)
     delete apiClient.defaults.headers.common['Authorization'];
+    
+    // Redirect to login
+    window.location.href = '/login'; 
   }, []);
 
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        const storedToken = sessionStorage.getItem('authToken');
+        // We no longer check for a token string. 
+        // We check if we have user details. The Cookie is hidden in the browser.
+        // If the cookie is invalid/expired, the first API call will fail with 401 
+        // and the api.js interceptor will call logout().
         const storedUser = sessionStorage.getItem('user');
 
-        if (storedToken && storedUser) {
-          // Check Token Expiration on Reload
-          const decodedToken = jwtDecode(storedToken);
-          const currentTime = Date.now() / 1000; // Convert milliseconds to seconds
-
-          // If token expiration time is in the past
-          if (decodedToken.exp < currentTime) {
-            console.warn("Session expired during reload. Clearing auth.");
-            alert("Your session has expired. Please login again.");
-            logout(); 
-            return; 
-          }
-          // --- FIX END ---
-
-          // Token is valid, restore session
-          setAuthToken(storedToken);
+        if (storedUser) {
           setUser(JSON.parse(storedUser));
-          apiClient.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
       } catch (error) {
         console.error("Failed to initialize auth state:", error);
@@ -55,22 +49,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      resetLogoutFlag();
       const { data } = await apiClient.post('/auth/login', credentials);
-      const decodedToken = jwtDecode(data.token);
-
+      
+      // The Backend no longer returns the token in the body (it's in a cookie).
+      // It returns the username and authorities.
       const userPayload = {
         username: data.username,
-        roles: (decodedToken.roles || '')
-          .split(',')
-          .map(role => role.trim())
-          .filter(role => role)
+        roles: data.authorities || [] // Backend returns a direct list now
       };
 
-      setAuthToken(data.token);
       setUser(userPayload);
-      sessionStorage.setItem('authToken', data.token);
       sessionStorage.setItem('user', JSON.stringify(userPayload));
-      apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+      
+      // We do NOT set apiClient headers here anymore.
     } catch (error) {
       console.error("AuthContext login failed:", error);
       logout();
@@ -78,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = { isAuthenticated: !!authToken, user, isInitializing, login, logout };
+  const value = { isAuthenticated: !!user, user, isInitializing, login, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

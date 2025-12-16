@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom'; 
+import { useIdleTimer } from 'react-idle-timer'; // npm install react-idle-timer
 import LoginPage from './pages/LoginPage';
 import SearchPage from './pages/SearchPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -10,11 +11,27 @@ import './App.css';
 const GlobalLoader = () => ( <div className="global-loader" /> );
 
 function App() {
-  const { isInitializing, logout } = useAuth();
+  const { isInitializing, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     setupInterceptors(logout);
   }, [logout]);
+
+  // --- IDLE SESSION TIMEOUT ---
+  // Automatically logs out after 15 minutes (900,000 ms) of inactivity
+  useIdleTimer({
+    timeout: 1000 * 60 * 15, // 15 Minutes
+    onIdle: () => {
+      if (isAuthenticated) {
+        // You might want a modal warning first in a real app, 
+        // but for strict compliance, immediate logout is safer.
+        alert("Session timed out due to inactivity.");
+        logout();
+      }
+    },
+    debounce: 500,
+    disabled: !isAuthenticated // Only run timer if logged in
+  });
 
   if (isInitializing) {
     return <GlobalLoader />;
@@ -26,14 +43,10 @@ function App() {
         {/* Public Route */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* --- THIS IS THE CORRECTED PROTECTED ROUTE STRUCTURE --- */}
-        {/* This parent Route uses ProtectedRoute as its element.
-            If authenticated, it will render an <Outlet /> which allows
-            the nested child routes to render. */}
+        {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/search" element={<SearchPage />} />
-          {/* You can add more protected routes here, e.g.: */}
-          {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
+          {/* Add dashboard or other routes here */}
         </Route>
         
         {/* Fallback Route */}

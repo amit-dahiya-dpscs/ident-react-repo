@@ -142,19 +142,36 @@ export const validateField = (name, value, allValues = {}, referenceData = {}, c
             // Rule 1: SDX Restriction (If currently on Search Page)
             // FRD Requirement: "For SDX search, only Full Name and DOB are allowed."
             if (isSearchPage && allValues.typeOfRequest === 'SDX' && trimmedValue) {
-                return "FBI Number is not allowed for SDX search.";
+                return "UCN is not allowed for SDX search.";
             }
 
             // Rule 2: Optional Field Check
             if (!trimmedValue) return null;
 
-            // Rule 3: Format Validation (Alphanumeric, Max 10 chars)
-            // FRD Source 1095: "UCN Number" is Alphanumeric, Size 10.
-            if (trimmedValue.length > 10) {
-                return "FBI Number cannot exceed 10 characters.";
-            }
             if (!/^[A-Z0-9]+$/i.test(trimmedValue)) {
-                return "FBI Number must be alphanumeric (letters and numbers only).";
+                return "UCN must be alphanumeric only.";
+            }
+            return null;
+
+        case 'dlNumber':
+            if (!trimmedValue) return null;
+            
+            // Remove spaces for validation logic
+            const cleanDL = trimmedValue.replace(/\s/g, '');
+
+            // Rule: Must START with a Letter (A-Z) or a Hyphen (-)
+            
+            // 1. Starts with Letter -> Rest can be Alphanumeric (Letters/Numbers)
+            // Logic: ^[A-Z] ensures first char is letter. [A-Z0-9]* ensures rest is alphanumeric.
+            const validAlphaStart = /^[A-Z][0-9]*$/.test(cleanDL);
+            
+            // 2. Starts with Hyphen -> Rest must be Numbers
+            // Logic: ^- ensures first char is hyphen. [0-9]* ensures rest is digits.
+            const validHyphenStart = /^-[0-9]*$/.test(cleanDL);
+
+            // If it doesn't match either pattern, it's invalid
+            if (!validAlphaStart && !validHyphenStart) {
+                return "DL must start with a letter or hyphen, followed by numbers only.";
             }
             return null;
 

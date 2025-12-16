@@ -5,6 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
+    withCredentials: true, // CRITICAL: This ensures HttpOnly cookies are sent/received
     headers: {
         'Content-Type': 'application/json',
     },
@@ -13,6 +14,7 @@ const apiClient = axios.create({
 // Variables
 let requestInterceptorId;
 let responseInterceptorId;
+let isLoggingOut = false;
 let logoutHandler = null;
 
 export const setupInterceptors = (logout) => {
@@ -26,13 +28,10 @@ export const setupInterceptors = (logout) => {
         apiClient.interceptors.response.eject(responseInterceptorId);
     }
 
-    // 2. REQUEST INTERCEPTOR
+    // 2. REQUEST INTERCEPTOR (Updated)
+    // We no longer attach the token manually. The browser handles the Cookie.
     requestInterceptorId = apiClient.interceptors.request.use(
         (config) => {
-            const token = sessionStorage.getItem('authToken'); 
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
             return config;
         },
         (error) => Promise.reject(error)
@@ -51,15 +50,16 @@ export const setupInterceptors = (logout) => {
             const isAuditRequest = originalRequest && originalRequest.url && originalRequest.url.includes('/audit/log');
 
             // B. CHECK FOR AUTH ERRORS (401/403)
+            // If the backend returns 401, it means the Cookie is invalid/expired
             if (status === 401 || status === 403) {
-                console.log("Token expired or unauthorized. Logging out...");
-                
-                if (logoutHandler) {
-                    // Check if the document is visible to avoid spamming alerts if multiple APIs fail at once
-                    if (!document.hidden) {
-                         alert("Your session has expired. Please login again.");
+                if (!isLoggingOut) {
+                    isLoggingOut = true; 
+                    console.log("Session expired. Logging out...");
+                    
+                    if (logoutHandler) {
+                        alert("Your session has expired. Please login again.");
+                        logoutHandler();
                     }
-                    logoutHandler();
                 }
                 return Promise.reject(error);
             }
@@ -80,18 +80,20 @@ export const setupInterceptors = (logout) => {
     );
 };
 
-// Initialize interceptors (Optional: can be called again from App.js with the real logout function)
-// setupInterceptors(); 
-
 // --- AUTHENTICATION API ---
 export const login = async (credentials) => {
+    // The backend now sets the HttpOnly cookie in the response header
     const response = await apiClient.post('/auth/login', credentials);
     return response.data; 
 };
 
+// NEW: Call backend to clear the cookie
+export const logoutUserApi = async () => {
+    return await apiClient.post('/auth/logout');
+};
+
 // --- AUDIT API ---
 export const createAuditLog = async (auditData) => {
-    // This is the function the Interceptor checks for (includes '/audit/log')
     return await apiClient.post('/audit/log', auditData);
 };
 
@@ -130,6 +132,10 @@ export const getCautions = async () => {
 export const getMiscPrefixes = async () => {
     const response = await apiClient.get('/reference/misc-prefixes');
     return response.data;
+};
+
+export const resetLogoutFlag = () => {
+    isLoggingOut = false;
 };
 
 export { apiClient }; 

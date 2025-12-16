@@ -94,8 +94,7 @@ const SearchPage = () => {
                 finalValue = value.replace(/[^0-9]/g, '');
                 break;
             case 'fbiNumber':
-                // FBI/UCN: Alphanumeric, Max 10 chars
-                finalValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 9);
+                finalValue = value.toUpperCase();
                 break;
             case 'dob':
                 // 1. Get raw digits only
@@ -135,17 +134,7 @@ const SearchPage = () => {
                 finalValue = autoFormatSsn(value);
                 break;
             case 'dlNumber':
-                // ALLOW: First char = Letter or Hyphen (-). Remaining chars = Numbers or Spaces.
-                // Logic: 
-                // 1. Force Uppercase
-                // 2. Allow if empty (deletion)
-                // 3. Allow if matches pattern: ^[A-Z-][0-9\s]*$
-                const upperVal = value.toUpperCase();
-                if (upperVal === '' || /^[A-Z-][0-9\s]*$/.test(upperVal)) {
-                    finalValue = upperVal;
-                } else {
-                    return; // Reject invalid input immediately
-                }
+                finalValue = value.toUpperCase();
                 break;
             default: break;
         }
@@ -441,7 +430,6 @@ const SearchPage = () => {
                                     <input
                                         id="fbiNumber" type="text" name="fbiNumber"
                                         value={searchCriteria.fbiNumber} onChange={handleChange}
-                                        maxLength="10"
                                         disabled={isSdxMode} // Disabled for SDX
                                         className={errors.fbiNumber ? 'input-error' : ''}
                                     />
@@ -456,10 +444,11 @@ const SearchPage = () => {
                                         name="dlNumber"
                                         value={searchCriteria.dlNumber}
                                         onChange={handleChange}
-                                        maxLength="22"
                                         disabled={isSdxMode} // Legacy: Not allowed in SDX
                                         placeholder="License Number"
+                                        className={errors.dlNumber ? 'input-error' : ''}
                                     />
+                                    {errors.dlNumber && <span className="field-error-text"  role="alert">{errors.dlNumber}</span>}
                                 </div>
 
                                 {/* Row 4 */}

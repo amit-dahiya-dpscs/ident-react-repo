@@ -57,7 +57,15 @@ const LoginPage = () => {
             <p>Identifiction Index System</p>
           </div>
         </div>
-        {error && <p className="error-message" role="alert">{error}</p>}
+        {error && (
+            <div 
+                className="error-message" 
+                role="alert" 
+                aria-live="assertive"
+            >
+                {error}
+            </div>
+        )}
         <form onSubmit={handleLogin}>
           <div className="input-group">
             <label htmlFor="username" className="sr-only">Username</label>
