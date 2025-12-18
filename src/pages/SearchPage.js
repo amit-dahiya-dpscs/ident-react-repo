@@ -215,7 +215,6 @@ const SearchPage = () => {
 
     const handleSearch = async (e) => {
         e.preventDefault();
-        logAuditEvent('SEARCH_CLICK', { criteria: searchCriteria });
         setNotification({ message: '', type: '' });
         setSearchResult(null);
         setIsLoading(true);
@@ -263,7 +262,7 @@ const SearchPage = () => {
 
             // CASE B: Exact Match (1 Record)
             // Requirement: Fetch full details immediately for the Detail View
-            if (response.totalElements === 1) {
+            if (response.page?.totalElements === 1 || response.totalElements === 1) {
                 const systemId = response.content[0].systemId;
                 try {
                     const fullDetail = await getIdentDetail(systemId);
